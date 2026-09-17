@@ -10,6 +10,7 @@ from app.db.models.domain import (
     CreatorProfile,
     TargetAudience,
 )
+from app.services.youtube_service import YouTubeService
 
 
 class CreatorBrainService:
@@ -68,4 +69,5 @@ class CreatorBrainService:
                 for p in pillars
             ],
             "accepted_profile": None if profile is None else profile.profile,
+            "youtube": YouTubeService(self._db).get(creator),
         }

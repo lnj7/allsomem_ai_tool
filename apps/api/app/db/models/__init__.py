@@ -4,6 +4,7 @@ from app.db.models.domain import (
     AutomationSettings,
     BrandProfile,
     CommunityComment,
+    ConnectedPlatform,
     ContentAsset,
     ContentIdea,
     ContentPillar,
@@ -30,4 +31,5 @@ __all__ = [
     "CommunityComment",
     "AutomationSettings",
     "AssistantMessage",
+    "ConnectedPlatform",
 ]

@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { ErrorState } from "@/components/ui/error-state";
 import { productApi } from "@/lib/api/product";
 import { ApiError } from "@/lib/api/client";
+import { APP_NAME } from "@creatoros/shared";
 
 const steps = ["About You", "Expertise", "Audience", "Goals", "Platforms", "Brand Style"];
 const platforms = ["Instagram", "YouTube", "Facebook", "LinkedIn", "X", "TikTok", "Threads", "Pinterest"];
@@ -36,6 +37,7 @@ export default function OnboardingPage() {
     desired_audience_size: "",
     time_per_week: "",
     platforms: "Instagram,YouTube",
+    youtube_url: "https://www.youtube.com/@laxminarayan308",
     preferred_language: "English",
     tone: "Friendly + Technical",
     personality: "Calm, Clear, Practical",
@@ -87,7 +89,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-[#f5f6fb] px-4 py-10">
       <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-[220px_1fr]">
         <aside className="rounded-3xl bg-white p-5">
-          <p className="font-semibold text-[#0b1230]">CreatorOS</p>
+          <p className="font-semibold text-[#0b1230]">{APP_NAME}</p>
           <ol className="mt-6 space-y-3 text-sm">
             {steps.map((label, index) => (
               <li key={label} className={index + 1 === step ? "font-semibold text-[#6d5efc]" : "text-slate-500"}>
@@ -144,7 +146,13 @@ export default function OnboardingPage() {
               </>
             ) : null}
             {step === 5 ? (
-              <div className="grid grid-cols-2 gap-2">
+              <>
+                <Input
+                  value={data.youtube_url || ""}
+                  onChange={(e) => update("youtube_url", e.target.value)}
+                  placeholder="YouTube channel URL or @handle"
+                />
+                <div className="grid grid-cols-2 gap-2">
                 {platforms.map((platform) => {
                   const selected = data.platforms.split(",").includes(platform);
                   return (
@@ -162,7 +170,8 @@ export default function OnboardingPage() {
                     </button>
                   );
                 })}
-              </div>
+                </div>
+              </>
             ) : null}
             {step === 6 ? (
               <>

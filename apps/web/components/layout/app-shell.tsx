@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { APP_NAME } from "@creatoros/shared";
 import { cn } from "@/lib/utils";
 import { authApi } from "@/lib/api/product";
 import { Button } from "@/components/ui/button";
@@ -37,8 +38,8 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
   return (
     <div className="min-h-screen bg-[#f5f6fb]">
       <aside className="hidden md:fixed md:inset-y-0 md:flex md:w-60 md:flex-col border-r border-slate-200 bg-white px-4 py-6">
-        <Link href="/dashboard" className="mb-8 px-2 text-lg font-semibold text-[#0b1230]">
-          CreatorOS
+        <Link href="/dashboard" className="mb-8 px-2 text-base font-semibold leading-snug text-[#0b1230]">
+          {APP_NAME}
         </Link>
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto" aria-label="Primary">
           {items.map((item) => {
@@ -61,7 +62,7 @@ export function AppShell({ title, children }: { title: string; children: ReactNo
       <div className="md:pl-60">
         <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6d5efc]">CreatorOS</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6d5efc]">{APP_NAME}</p>
             <h1 className="text-lg font-semibold text-[#0b1230]">{title}</h1>
           </div>
           <div className="flex items-center gap-3">

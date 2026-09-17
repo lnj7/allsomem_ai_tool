@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
+import { APP_NAME } from "@creatoros/shared";
 import { authApi } from "@/lib/api/product";
 import { ApiError } from "@/lib/api/client";
 
@@ -31,7 +32,7 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0b1230] px-4">
       <Card className="w-full max-w-md">
-        <p className="text-sm font-semibold text-[#6d5efc]">CreatorOS</p>
+        <p className="text-sm font-semibold text-[#6d5efc]">{APP_NAME}</p>
         <h1 className="mt-2 text-2xl font-semibold">Start building your profile</h1>
         <form className="mt-6 space-y-4" onSubmit={onSubmit}>
           <Input required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />

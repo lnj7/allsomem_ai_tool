@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { APP_NAME, APP_TAGLINE } from "@creatoros/shared";
 import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0b1230] text-white">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <p className="text-lg font-semibold">CreatorOS</p>
+        <p className="text-lg font-semibold">{APP_NAME}</p>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-sm text-slate-300">
             Login
@@ -18,7 +19,7 @@ export default function LandingPage() {
       <main className="mx-auto grid max-w-6xl gap-12 px-6 pb-24 pt-10 lg:grid-cols-2 lg:items-center">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#b7a8ff]">
-            Your AI Creator Manager
+            {APP_TAGLINE}
           </p>
           <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-6xl">
             Build your personal brand across every social platform from one place.

@@ -1,4 +1,4 @@
-# CreatorOS — how to run and edit
+# Jadon Family creatorOS & co. — how to run and edit
 
 Use this file when you want to start the app or open the code in VS Code.
 

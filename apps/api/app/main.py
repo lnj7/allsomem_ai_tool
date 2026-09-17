@@ -14,7 +14,7 @@ settings = get_settings()
 configure_logging()
 
 app = FastAPI(
-    title="CreatorOS API",
+    title="Jadon Family creatorOS & co. API",
     version=settings.app_version,
     docs_url="/docs" if not settings.is_production else None,
     redoc_url=None,

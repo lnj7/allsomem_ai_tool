@@ -1,6 +1,6 @@
-# CreatorOS
+# Jadon Family creatorOS & co.
 
-CreatorOS is an AI-powered Creator Operating System. Milestone 1 delivers the local foundation: a Next.js application shell, a FastAPI API, PostgreSQL, Redis, health checks, and Docker Compose.
+Jadon Family creatorOS & co. is an AI-powered Creator Operating System. Milestone 1 delivers the local foundation: a Next.js application shell, a FastAPI API, PostgreSQL, Redis, health checks, and Docker Compose.
 
 This is **not** a complete product yet. Authentication, AI profile generation, and social publishing are later milestones.
 
@@ -51,7 +51,7 @@ The API container runs `alembic upgrade head` on startup.
 
 ## Host-only local run (this machine)
 
-PostgreSQL 16 and Redis are installed via Homebrew and already configured for CreatorOS.
+PostgreSQL 16 and Redis are installed via Homebrew and already configured for this project.
 
 ```bash
 brew services start postgresql@16

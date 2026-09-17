@@ -23,6 +23,7 @@ from app.db.models.domain import (
     PublishingJob,
     TargetAudience,
 )
+from app.integrations.youtube.public import YouTubePublicError
 from app.schemas.product import (
     ContentGenerateRequest,
     CreatorProfileSchema,
@@ -31,6 +32,7 @@ from app.schemas.product import (
     OnboardingPayload,
 )
 from app.services.creator_brain import CreatorBrainService
+from app.services.youtube_service import YouTubeService
 
 
 class ProductService:
@@ -54,6 +56,12 @@ class ProductService:
         if payload.complete:
             creator.onboarding_completed = True
             self._persist_onboarding_entities(creator, data)
+            youtube_url = data.get("youtube_url")
+            if youtube_url:
+                try:
+                    YouTubeService(self._db).connect(creator, str(youtube_url))
+                except (HTTPException, YouTubePublicError):
+                    self._db.commit()
         self._db.commit()
         self._db.refresh(creator)
         return creator
@@ -215,6 +223,10 @@ class ProductService:
         assets = self.list_assets(creator)
         ready = [a for a in assets if a.status in {"READY", "SCHEDULED"}]
         settings = self._settings_for(creator)
+        youtube = YouTubeService(self._db).get(creator)
+        snapshot = youtube.get("snapshot") or {}
+        public_subs = snapshot.get("subscriber_count") or 0
+        public_videos = snapshot.get("video_count") or 0
         return {
             "creator_name": creator.display_name,
             "onboarding_completed": creator.onboarding_completed,
@@ -224,24 +236,43 @@ class ProductService:
             else 40
             if creator.onboarding_completed
             else 10,
-            "followers": 0,
-            "content_count": len(assets),
+            "followers": public_subs,
+            "followers_source": "youtube_public" if youtube.get("connected") else None,
+            "content_count": public_videos if youtube.get("connected") else len(assets),
+            "local_content_count": len(assets),
             "ready_count": len(ready),
             "approval_mode": settings.approval_mode,
             "today_plan": [{"title": a.title, "status": a.status} for a in ready[:3]],
             "ai_configured": bool(self._settings.ai_api_key.strip()),
+            "youtube": youtube,
         }
 
     def analytics_overview(self, creator: Creator) -> dict:
+        youtube = YouTubeService(self._db).get(creator)
+        snapshot = youtube.get("snapshot") or {}
+        videos = snapshot.get("videos") or []
+        public_views = sum(int(item.get("views") or 0) for item in videos)
+        if youtube.get("connected"):
+            note = (
+                "Public YouTube snapshot: listed video view counts from the channel page. "
+                "Likes, comments, shares, and watch time are not in this public data."
+            )
+        else:
+            note = (
+                "Connect a YouTube channel on Creator Profile to load public subscriber and video stats. "
+                "No sample metrics are shown."
+            )
         return {
-            "views": 0,
+            "views": public_views,
             "likes": 0,
             "comments": 0,
             "shares": 0,
             "engagement_rate": 0,
-            "followers": 0,
-            "note": "Analytics appear after official platform integrations are connected. No sample metrics are shown.",
-            "content_count": len(self.list_assets(creator)),
+            "followers": snapshot.get("subscriber_count") or 0,
+            "note": note,
+            "content_count": snapshot.get("video_count") or len(self.list_assets(creator)),
+            "local_content_count": len(self.list_assets(creator)),
+            "youtube": youtube,
         }
 
     def list_comments(self, creator: Creator) -> list[CommunityComment]:
@@ -316,7 +347,7 @@ class ProductService:
         provider = OpenAICompatibleProvider(self._settings)
         context = self._brain.get_creator_context(creator)
         prompt = (
-            "You are the CreatorOS assistant. Be practical. Do not promise virality. "
+            "You are the Jadon Family creatorOS & co. assistant. Be practical. Do not promise virality. "
             "Use this compact creator context:\n"
             f"{context}\n\nUser: {message}"
         )

@@ -42,7 +42,7 @@ export default function AssistantPage() {
           ))}
         </div>
         <form className="mt-4 space-y-3" onSubmit={onSubmit}>
-          <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ask CreatorOS" required />
+          <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ask Jadon Family creatorOS & co." required />
           {error ? <ErrorState message={error} /> : null}
           <Button type="submit">Send</Button>
         </form>

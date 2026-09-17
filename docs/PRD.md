@@ -1,6 +1,6 @@
 # Product requirements
 
-CreatorOS is an AI-powered Creator Operating System. The long-term loop is create → publish → collect data → analyze → learn → update Creator Brain → improve strategy.
+Jadon Family creatorOS & co. is an AI-powered Creator Operating System. The long-term loop is create → publish → collect data → analyze → learn → update Creator Brain → improve strategy.
 
 Milestone 1 scope:
 

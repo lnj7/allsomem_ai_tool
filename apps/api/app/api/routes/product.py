@@ -21,8 +21,10 @@ from app.schemas.product import (
     ProfileUpdateRequest,
     ScheduleRequest,
     SettingsUpdate,
+    YouTubeConnectRequest,
 )
 from app.services.product_service import ProductService
+from app.services.youtube_service import YouTubeService
 
 router = APIRouter(prefix="/api/v1", tags=["product"])
 
@@ -273,6 +275,31 @@ def assistant_ask(
     service: ProductService = Depends(_service),
 ) -> dict:
     return service.ask_assistant(creator, payload.message)
+
+
+@router.get("/platforms/youtube")
+def get_youtube(
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> dict:
+    return YouTubeService(db).get(creator)
+
+
+@router.post("/platforms/youtube")
+def connect_youtube(
+    payload: YouTubeConnectRequest,
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> dict:
+    return YouTubeService(db).connect(creator, payload.url)
+
+
+@router.post("/platforms/youtube/refresh")
+def refresh_youtube(
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> dict:
+    return YouTubeService(db).refresh(creator)
 
 
 @router.get("/me")

@@ -31,7 +31,9 @@ export default function DashboardPage() {
         <Card>
           <p className="text-sm text-slate-500">Followers</p>
           <p className="mt-2 text-3xl font-semibold">{Number(data?.followers || 0)}</p>
-          <p className="mt-1 text-xs text-slate-500">Live after platforms connect</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {data?.followers_source === "youtube_public" ? "Public YouTube subscribers" : "Connect YouTube on Creator Profile"}
+          </p>
         </Card>
         <Card>
           <p className="text-sm text-slate-500">Content</p>

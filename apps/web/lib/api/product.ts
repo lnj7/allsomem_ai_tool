@@ -26,6 +26,37 @@ export type Creator = {
   onboarding_data: Record<string, unknown>;
 };
 
+export type YouTubeVideo = {
+  video_id: string;
+  title: string;
+  url: string;
+  views: number | null;
+  views_label: string | null;
+  published_label: string | null;
+  thumbnail_url: string | null;
+};
+
+export type YouTubeSnapshot = {
+  title: string;
+  handle: string | null;
+  url: string;
+  description: string;
+  subscriber_count: number | null;
+  subscriber_label: string | null;
+  video_count: number | null;
+  videos: YouTubeVideo[];
+  progress: { current: number; next_milestone: number; percent: number };
+  next_actions: { id: string; title: string; detail: string }[];
+  note: string;
+  synced_at: string | null;
+};
+
+export type YouTubeConnection = {
+  connected: boolean;
+  platform: string;
+  snapshot: YouTubeSnapshot | null;
+};
+
 export type Profile = {
   niche: string;
   positioning: string;
@@ -47,6 +78,9 @@ export const productApi = {
     apiPost("/api/v1/onboarding", body),
   generateProfile: () => apiPost<{ status: string; profile: Profile }>("/api/v1/onboarding/generate-profile"),
   strategy: () => apiGet<{ status: string; profile: Profile | null }>("/api/v1/strategy"),
+  youtube: () => apiGet<YouTubeConnection>("/api/v1/platforms/youtube"),
+  connectYouTube: (url: string) => apiPost<YouTubeConnection>("/api/v1/platforms/youtube", { url }),
+  refreshYouTube: () => apiPost<YouTubeConnection>("/api/v1/platforms/youtube/refresh"),
   saveProfile: (profile: Profile, accept = false) =>
     apiPut<{ status: string; profile: Profile }>("/api/v1/strategy", { profile, accept }),
   dashboard: () => apiGet<Record<string, unknown>>("/api/v1/dashboard"),

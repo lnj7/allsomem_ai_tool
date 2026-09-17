@@ -128,3 +128,7 @@ class SettingsUpdate(BaseModel):
 
 class AssistantAsk(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
+
+
+class YouTubeConnectRequest(BaseModel):
+    url: str = Field(min_length=2, max_length=500)

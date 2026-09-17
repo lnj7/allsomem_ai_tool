@@ -30,7 +30,7 @@ export default function ApprovalPage() {
     if (!selected?.id) return;
     setError("");
     await productApi.approve(String(selected.id));
-    setNotice("Marked ready. Social publishing is not connected, so this stays in CreatorOS.");
+    setNotice("Marked ready. Social publishing is not connected, so this stays in Jadon Family creatorOS & co.");
     await load();
   }
 

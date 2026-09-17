@@ -18,7 +18,7 @@ export default function SettingsPage() {
       <Card className="max-w-xl">
         <h2 className="font-semibold">Publishing approval</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Default is Review required. CreatorOS will not auto-publish to social networks until you connect official
+          Default is Review required. Jadon Family creatorOS & co. will not auto-publish to social networks until you connect official
           APIs and choose Auto-approve.
         </p>
         <Select className="mt-4" value={mode} onChange={(e) => setMode(e.target.value)}>

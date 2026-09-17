@@ -10,6 +10,8 @@ export default function AnalyticsPage() {
   useEffect(() => {
     productApi.analytics().then(setData).catch(() => undefined);
   }, []);
+  const youtube = (data?.youtube || {}) as { snapshot?: { videos?: Array<Record<string, unknown>> } };
+  const videos = youtube.snapshot?.videos || [];
   return (
     <AppShell title="Content Performance">
       <div className="grid gap-4 sm:grid-cols-4">
@@ -22,8 +24,22 @@ export default function AnalyticsPage() {
       </div>
       <Card className="mt-6">
         <p className="text-sm text-slate-600">{String(data?.note || "")}</p>
-        <p className="mt-2 text-sm text-slate-500">Tracked local assets: {Number(data?.content_count || 0)}</p>
+        <p className="mt-2 text-sm text-slate-500">
+          Public videos: {Number(data?.content_count || 0)} · Local drafts: {Number(data?.local_content_count || 0)}
+        </p>
       </Card>
+      {videos.length ? (
+        <div className="mt-4 grid gap-3">
+          {videos.map((video) => (
+            <Card key={String(video.video_id)}>
+              <p className="font-medium">{String(video.title)}</p>
+              <p className="mt-1 text-sm text-slate-500">
+                {String(video.views_label || "views unknown")} · {String(video.published_label || "")}
+              </p>
+            </Card>
+          ))}
+        </div>
+      ) : null}
     </AppShell>
   );
 }
