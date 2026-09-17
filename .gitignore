@@ -1,0 +1,41 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Docker volumes / local data
+data/
+*.log
