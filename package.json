@@ -1,0 +1,16 @@
+{
+  "name": "creatoros",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "packages/types",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w @creatoros/web",
+    "lint": "npm run lint -w @creatoros/web",
+    "typecheck": "npm run typecheck -w @creatoros/web",
+    "test": "npm run test -w @creatoros/web",
+    "build": "npm run build -w @creatoros/web"
+  }
+}

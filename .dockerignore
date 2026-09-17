@@ -9,3 +9,7 @@
 **/coverage
 **/.env
 **/*.pyc
+**/.DS_Store
+htmlcov
+*.md
+!README.md
