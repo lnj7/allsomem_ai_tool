@@ -2,6 +2,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.ai.agents.future import MonetizationAgent, OnboardingAgent, PlatformAnalysisAgent
 from app.db.models.domain import (
     BrandProfile,
     ContentPillar,
@@ -10,6 +11,7 @@ from app.db.models.domain import (
     CreatorProfile,
     TargetAudience,
 )
+from app.services.social_account_service import SocialAccountService
 from app.services.youtube_service import YouTubeService
 
 
@@ -69,5 +71,15 @@ class CreatorBrainService:
                 for p in pillars
             ],
             "accepted_profile": None if profile is None else profile.profile,
+            "creator_stage": creator.creator_stage,
+            "monetization_status": creator.monetization_status,
+            "connected_accounts": SocialAccountService(self._db).list_accounts(creator),
+            "platform_analysis": PlatformAnalysisAgent().analyze(
+                SocialAccountService(self._db).list_accounts(creator)
+            ),
+            "onboarding_summary": OnboardingAgent().summarize(creator.onboarding_data or {}),
+            "monetization": MonetizationAgent().workspace(
+                {"monetization_status": creator.monetization_status}
+            ),
             "youtube": YouTubeService(self._db).get(creator),
         }

@@ -5,7 +5,9 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.ai.agents.content import ContentAgent
+from app.ai.agents.future import MonetizationAgent
 from app.ai.agents.profile import CreatorProfileAgent
+from app.ai.gateway import AIGateway
 from app.ai.providers.base import AINotConfiguredError, AIProviderError
 from app.ai.providers.openai_compatible import OpenAICompatibleProvider
 from app.core.config import Settings
@@ -20,6 +22,8 @@ from app.db.models.domain import (
     Creator,
     CreatorGoal,
     CreatorProfile,
+    CreatorStageHistory,
+    MonetizationProfile,
     PublishingJob,
     TargetAudience,
 )
@@ -40,6 +44,7 @@ class ProductService:
         self._db = db
         self._settings = settings
         self._brain = CreatorBrainService(db)
+        self._ai = AIGateway(settings)
 
     def update_creator(self, creator: Creator, payload: CreatorUpdate) -> Creator:
         for field, value in payload.model_dump(exclude_unset=True).items():
@@ -53,6 +58,18 @@ class ProductService:
         data.update(payload.data)
         creator.onboarding_data = data
         creator.onboarding_step = payload.step
+        stage = str(data.get("creator_stage") or creator.creator_stage or "BEGINNER").upper()
+        if stage in {"BEGINNER", "GROWING", "ADVANCED"}:
+            self._set_stage(creator, stage, commit=False)
+        monetization = str(data.get("monetization_status") or "").upper()
+        if monetization in {
+            "NOT_APPLICABLE",
+            "NOT_MONETIZED",
+            "ELIGIBLE",
+            "MONETIZED",
+            "UNKNOWN",
+        }:
+            creator.monetization_status = monetization
         if payload.complete:
             creator.onboarding_completed = True
             self._persist_onboarding_entities(creator, data)
@@ -65,6 +82,122 @@ class ProductService:
         self._db.commit()
         self._db.refresh(creator)
         return creator
+
+    def set_stage(self, creator: Creator, stage: str) -> Creator:
+        self._set_stage(creator, stage, commit=True)
+        self._db.refresh(creator)
+        return creator
+
+    def creator_context(self, creator: Creator) -> dict:
+        return self._brain.get_creator_context(creator)
+
+    def growth_profile(self, creator: Creator) -> dict:
+        context = self._brain.get_creator_context(creator)
+        youtube = context.get("youtube") or {}
+        snapshot = youtube.get("snapshot") or {}
+        accounts = context.get("connected_accounts") or []
+        observations: list[str] = []
+        if snapshot:
+            observations.append(
+                f"Your recent public YouTube snapshot shows "
+                f"{snapshot.get('subscriber_count') or 0} subscribers and "
+                f"{snapshot.get('video_count') or 0} listed videos."
+            )
+            if snapshot.get("next_actions"):
+                observations.append("One pattern worth testing is more consistent public uploads.")
+        else:
+            observations.append(
+                "No connected account snapshot is available yet, so this profile uses only your onboarding answers."
+            )
+        profile = {
+            "current_niche": creator.niche or (creator.onboarding_data or {}).get("subjects"),
+            "content_categories": (creator.onboarding_data or {}).get("content_type"),
+            "audience_overview": (creator.onboarding_data or {}).get("audience_who"),
+            "posting_consistency": (creator.onboarding_data or {}).get("posting_frequency"),
+            "performance_trends": observations,
+            "content_patterns": observations,
+            "improvement_areas": (creator.onboarding_data or {}).get("biggest_problem"),
+            "recommended_experiments": [
+                "Consider experimenting with a consistent posting window for one platform.",
+                "Review which recent posts earned more public views, then repeat the format.",
+            ],
+            "recommended_content_strategy": "Keep the core idea consistent, then adapt hook, length, and CTA per platform.",
+            "accounts_analyzed": len(accounts),
+            "disclaimer": "This is analytical language based on available data. It is not a virality forecast.",
+        }
+        return {"status": "draft", "profile": profile}
+
+    def monetization_workspace(self, creator: Creator) -> dict:
+        row = (
+            self._db.query(MonetizationProfile)
+            .filter(MonetizationProfile.creator_id == creator.id)
+            .one_or_none()
+        )
+        sources = (creator.onboarding_data or {}).get("revenue_sources") or []
+        if row is None:
+            row = MonetizationProfile(
+                creator_id=creator.id,
+                status=creator.monetization_status,
+                revenue_sources=sources if isinstance(sources, list) else [str(sources)],
+            )
+            self._db.add(row)
+            self._db.commit()
+            self._db.refresh(row)
+        return MonetizationAgent().workspace(
+            {
+                "monetization_status": creator.monetization_status,
+                "revenue_sources": row.revenue_sources,
+                "notes": row.notes,
+            }
+        )
+
+    def _set_stage(self, creator: Creator, stage: str, commit: bool) -> None:
+        previous = creator.creator_stage
+        if previous != stage:
+            self._db.add(
+                CreatorStageHistory(creator_id=creator.id, from_stage=previous, to_stage=stage)
+            )
+        creator.creator_stage = stage
+        if commit:
+            self._db.commit()
+
+    def _stage_experience(self, creator: Creator) -> dict:
+        stage = creator.creator_stage or "BEGINNER"
+        if stage == "GROWING":
+            return {
+                "title": "Growth overview",
+                "modules": [
+                    "Growth Overview",
+                    "Performance Trends",
+                    "Content Analysis",
+                    "Experiments",
+                    "Recommendations",
+                    "Content Calendar",
+                ],
+            }
+        if stage == "ADVANCED":
+            return {
+                "title": "Creator command center",
+                "modules": [
+                    "Multi-platform analytics",
+                    "Content production",
+                    "Audience intelligence",
+                    "Growth experiments",
+                    "Brand management",
+                    "Monetization workspace",
+                    "Publishing automation",
+                ],
+            }
+        return {
+            "title": "Today's mission",
+            "modules": [
+                "Today's Mission",
+                "Content Ideas",
+                "Create Content",
+                "Learning",
+                "First Audience",
+            ],
+        }
 
     def generate_profile(self, creator: Creator) -> GeneratedProfileOut:
         provider = OpenAICompatibleProvider(self._settings)
@@ -245,6 +378,9 @@ class ProductService:
             "today_plan": [{"title": a.title, "status": a.status} for a in ready[:3]],
             "ai_configured": bool(self._settings.ai_api_key.strip()),
             "youtube": youtube,
+            "creator_stage": creator.creator_stage,
+            "monetization_status": creator.monetization_status,
+            "experience": self._stage_experience(creator),
         }
 
     def analytics_overview(self, creator: Creator) -> dict:

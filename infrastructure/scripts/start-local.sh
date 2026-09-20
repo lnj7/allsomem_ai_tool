@@ -40,8 +40,9 @@ else
 fi
 
 echo
-echo "CreatorOS is starting."
+echo "Jadon Family creatorOS & co. is starting."
 echo "  App:     http://localhost:3000"
+echo "  Public:  $ROOT/infrastructure/scripts/host-public.sh"
 echo "  API:     http://localhost:8000/health"
 echo "  Ready:   http://localhost:8000/health/ready"
 echo "  Logs:    $LOG_DIR/"

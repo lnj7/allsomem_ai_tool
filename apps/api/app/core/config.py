@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     ai_api_key: str = Field(default="")
     ai_model: str = Field(default="gpt-4o-mini")
     ai_base_url: str = Field(default="https://api.openai.com/v1")
+    google_client_id: str = Field(default="")
+    google_client_secret: str = Field(default="")
+    google_redirect_uri: str = Field(default="http://localhost:8000/api/v1/social-accounts/oauth/youtube/callback")
+    meta_app_id: str = Field(default="")
+    meta_app_secret: str = Field(default="")
+    meta_redirect_uri: str = Field(default="http://localhost:8000/api/v1/social-accounts/oauth/meta/callback")
 
     @field_validator("secret_key")
     @classmethod

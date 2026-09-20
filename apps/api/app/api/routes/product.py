@@ -15,15 +15,18 @@ from app.schemas.product import (
     ContentAssetOut,
     ContentGenerateRequest,
     CreatorOut,
+    CreatorStageUpdate,
     CreatorUpdate,
     GeneratedProfileOut,
     OnboardingPayload,
     ProfileUpdateRequest,
     ScheduleRequest,
     SettingsUpdate,
+    SocialConnectRequest,
     YouTubeConnectRequest,
 )
 from app.services.product_service import ProductService
+from app.services.social_account_service import SocialAccountService
 from app.services.youtube_service import YouTubeService
 
 router = APIRouter(prefix="/api/v1", tags=["product"])
@@ -47,6 +50,23 @@ def update_creator(
     return service.update_creator(creator, payload)
 
 
+@router.put("/creators/me/stage", response_model=CreatorOut)
+def update_creator_stage(
+    payload: CreatorStageUpdate,
+    creator: Creator = Depends(get_current_creator),
+    service: ProductService = Depends(_service),
+) -> Creator:
+    return service.set_stage(creator, payload.creator_stage)
+
+
+@router.get("/creator-context")
+def creator_context(
+    creator: Creator = Depends(get_current_creator),
+    service: ProductService = Depends(_service),
+) -> dict:
+    return service.creator_context(creator)
+
+
 @router.get("/onboarding")
 def get_onboarding(creator: Creator = Depends(get_current_creator)) -> dict:
     return {
@@ -68,6 +88,22 @@ def save_onboarding(
         "completed": saved.onboarding_completed,
         "data": saved.onboarding_data,
     }
+
+
+@router.post("/onboarding/growth-profile")
+def growth_profile(
+    creator: Creator = Depends(get_current_creator),
+    service: ProductService = Depends(_service),
+) -> dict:
+    return service.growth_profile(creator)
+
+
+@router.get("/monetization")
+def monetization(
+    creator: Creator = Depends(get_current_creator),
+    service: ProductService = Depends(_service),
+) -> dict:
+    return service.monetization_workspace(creator)
 
 
 @router.post("/onboarding/generate-profile", response_model=GeneratedProfileOut)
@@ -300,6 +336,66 @@ def refresh_youtube(
     db: Session = Depends(get_db),
 ) -> dict:
     return YouTubeService(db).refresh(creator)
+
+
+@router.get("/social-accounts/status")
+def social_status(
+    db: Session = Depends(get_db),
+) -> dict:
+    return {"platforms": SocialAccountService(db, get_settings()).platform_statuses()}
+
+
+@router.get("/social-accounts")
+def list_social_accounts(
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    return SocialAccountService(db, get_settings()).list_accounts(creator)
+
+
+@router.post("/social-accounts/connect")
+def connect_social_account(
+    payload: SocialConnectRequest,
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> dict:
+    return SocialAccountService(db, get_settings()).connect(creator, payload.platform, payload.url)
+
+
+@router.get("/social-accounts/oauth/{platform}/start")
+def oauth_start(
+    platform: str,
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> dict:
+    return SocialAccountService(db, get_settings()).oauth_start(platform)
+
+
+@router.post("/social-accounts/{account_id}/refresh")
+def refresh_social_account(
+    account_id: UUID,
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> dict:
+    return SocialAccountService(db, get_settings()).refresh(creator, account_id)
+
+
+@router.post("/social-accounts/{account_id}/reconnect")
+def reconnect_social_account(
+    account_id: UUID,
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> dict:
+    return SocialAccountService(db, get_settings()).refresh(creator, account_id)
+
+
+@router.delete("/social-accounts/{account_id}")
+def disconnect_social_account(
+    account_id: UUID,
+    creator: Creator = Depends(get_current_creator),
+    db: Session = Depends(get_db),
+) -> dict:
+    return SocialAccountService(db, get_settings()).disconnect(creator, account_id)
 
 
 @router.get("/me")

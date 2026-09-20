@@ -21,7 +21,8 @@ WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
+    HOSTNAME=0.0.0.0 \
+    API_INTERNAL_URL=http://api:8000
 RUN addgroup -S -g 10001 creatoros \
     && adduser -S -u 10001 -G creatoros creatoros
 COPY --from=builder --chown=creatoros:creatoros /repo/apps/web/.next/standalone ./

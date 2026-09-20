@@ -1,5 +1,7 @@
 from app.db.base import Base
 from app.db.models.domain import (
+    AiMemory,
+    AnalyticsSnapshot,
     AssistantMessage,
     AutomationSettings,
     BrandProfile,
@@ -11,7 +13,10 @@ from app.db.models.domain import (
     Creator,
     CreatorGoal,
     CreatorProfile,
+    CreatorStageHistory,
+    MonetizationProfile,
     PublishingJob,
+    SocialAccount,
     TargetAudience,
 )
 from app.db.models.user import User
@@ -32,4 +37,9 @@ __all__ = [
     "AutomationSettings",
     "AssistantMessage",
     "ConnectedPlatform",
+    "SocialAccount",
+    "AnalyticsSnapshot",
+    "AiMemory",
+    "MonetizationProfile",
+    "CreatorStageHistory",
 ]

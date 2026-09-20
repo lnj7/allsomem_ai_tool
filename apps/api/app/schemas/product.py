@@ -32,6 +32,8 @@ class CreatorOut(BaseModel):
     primary_language: str | None
     timezone: str | None
     location: str | None
+    creator_stage: str
+    monetization_status: str
     onboarding_step: int
     onboarding_completed: bool
     onboarding_data: dict[str, Any]
@@ -44,12 +46,23 @@ class CreatorUpdate(BaseModel):
     primary_language: str | None = None
     timezone: str | None = None
     location: str | None = None
+    creator_stage: str | None = None
+    monetization_status: str | None = None
 
 
 class OnboardingPayload(BaseModel):
-    step: int = Field(ge=1, le=6)
+    step: int = Field(ge=1, le=20)
     data: dict[str, Any]
     complete: bool = False
+
+
+class CreatorStageUpdate(BaseModel):
+    creator_stage: str = Field(pattern="^(BEGINNER|GROWING|ADVANCED)$")
+
+
+class SocialConnectRequest(BaseModel):
+    platform: str
+    url: str | None = None
 
 
 class AudienceBlock(BaseModel):

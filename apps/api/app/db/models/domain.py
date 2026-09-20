@@ -27,6 +27,12 @@ class Creator(Base):
     primary_language: Mapped[str | None] = mapped_column(String(80))
     timezone: Mapped[str | None] = mapped_column(String(80))
     location: Mapped[str | None] = mapped_column(String(200))
+    creator_stage: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="BEGINNER", server_default="BEGINNER"
+    )
+    monetization_status: Mapped[str] = mapped_column(
+        String(40), nullable=False, default="UNKNOWN", server_default="UNKNOWN"
+    )
     onboarding_step: Mapped[int] = mapped_column(
         Integer, nullable=False, default=1, server_default="1"
     )
@@ -337,6 +343,115 @@ class AssistantMessage(Base):
     )
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class SocialAccount(Base):
+    __tablename__ = "social_accounts"
+    __table_args__ = (
+        UniqueConstraint(
+            "creator_id",
+            "platform",
+            "external_account_id",
+            name="uq_social_accounts_creator_platform_external",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    creator_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("creators.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform: Mapped[str] = mapped_column(String(40), nullable=False)
+    external_account_id: Mapped[str] = mapped_column(String(200), nullable=False)
+    account_name: Mapped[str | None] = mapped_column(String(300))
+    username: Mapped[str | None] = mapped_column(String(200))
+    account_type: Mapped[str] = mapped_column(String(40), nullable=False, default="CHANNEL")
+    profile_url: Mapped[str | None] = mapped_column(String(500))
+    avatar_url: Mapped[str | None] = mapped_column(String(500))
+    access_token_encrypted: Mapped[str | None] = mapped_column(Text)
+    refresh_token_encrypted: Mapped[str | None] = mapped_column(Text)
+    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    scopes: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    connection_status: Mapped[str] = mapped_column(String(40), nullable=False, default="NEEDS_OAUTH")
+    snapshot: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class AnalyticsSnapshot(Base):
+    __tablename__ = "analytics_snapshots"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    creator_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("creators.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    social_account_id: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("social_accounts.id", ondelete="SET NULL")
+    )
+    platform: Mapped[str] = mapped_column(String(40), nullable=False)
+    metric_name: Mapped[str] = mapped_column(String(80), nullable=False)
+    metric_value: Mapped[str] = mapped_column(String(80), nullable=False)
+    period: Mapped[str | None] = mapped_column(String(40))
+    source: Mapped[str] = mapped_column(String(40), nullable=False, default="public")
+    raw_data: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    captured_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class AiMemory(Base):
+    __tablename__ = "ai_memory"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    creator_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("creators.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    memory_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    content: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class MonetizationProfile(Base):
+    __tablename__ = "monetization_profiles"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    creator_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("creators.id", ondelete="CASCADE"), unique=True, nullable=False
+    )
+    status: Mapped[str] = mapped_column(String(40), nullable=False, default="UNKNOWN")
+    revenue_sources: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class CreatorStageHistory(Base):
+    __tablename__ = "creator_stage_history"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    creator_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("creators.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    from_stage: Mapped[str | None] = mapped_column(String(20))
+    to_stage: Mapped[str] = mapped_column(String(20), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
